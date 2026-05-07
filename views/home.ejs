@@ -14,6 +14,28 @@
       padding: 0;
     }
 
+    .navbar {
+      background: white;
+      padding: 18px 50px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .logo {
+      color: #2e7d32;
+      font-weight: bold;
+      font-size: 22px;
+    }
+
+    .nav-links a {
+      margin-left: 14px;
+      text-decoration: none;
+      color: #2e7d32;
+      font-weight: bold;
+    }
+
     .container {
       max-width: 900px;
       margin: 80px auto;
@@ -43,16 +65,53 @@
       border-radius: 999px;
       font-weight: bold;
     }
+
+    .main-btn {
+      display: inline-block;
+      margin-top: 28px;
+      padding: 13px 24px;
+      background: #2e7d32;
+      color: white;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .main-btn:hover {
+      background: #1b5e20;
+    }
   </style>
 </head>
 <body>
+  <div class="navbar">
+    <div class="logo"><%= appName %></div>
+
+    <div class="nav-links">
+      <% if (currentUser) { %>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/logout">Đăng xuất</a>
+      <% } else { %>
+        <a href="/login">Đăng nhập</a>
+        <a href="/register">Đăng ký</a>
+      <% } %>
+    </div>
+  </div>
+
   <div class="container">
     <h1><%= appName %></h1>
     <p>Website quản lý cây trồng và lịch nhắc nhở tưới cây.</p>
 
     <div class="badge">
-      Server NodeJS + Express + MongoDB đã chạy thành công
+      NodeJS + ExpressJS + MongoDB + EJS
     </div>
+
+    <br />
+
+    <% if (currentUser) { %>
+      <a class="main-btn" href="/dashboard">Vào trang quản lý</a>
+    <% } else { %>
+      <a class="main-btn" href="/register">Bắt đầu ngay</a>
+    <% } %>
   </div>
 </body>
 </html>

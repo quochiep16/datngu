@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Dashboard - PlantCare Reminder</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f8f3;
+    }
+
+    .navbar {
+      background: #2e7d32;
+      color: white;
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      color: #2e7d32;
+      margin-top: 0;
+    }
+
+    .info {
+      color: #555;
+      line-height: 1.8;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 24px;
+    }
+
+    .stat {
+      background: #e8f5e9;
+      padding: 20px;
+      border-radius: 14px;
+      text-align: center;
+    }
+
+    .stat strong {
+      display: block;
+      color: #2e7d32;
+      font-size: 30px;
+      margin-bottom: 6px;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .navbar {
+        padding: 16px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <div>PlantCare Reminder</div>
+    <a href="/logout">Đăng xuất</a>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h1>Xin chào, <%= user.name %>!</h1>
+
+      <div class="info">
+        <p>Email: <%= user.email %></p>
+        <p>Vai trò: <%= user.role %></p>
+      </div>
+
+      <div class="grid">
+        <div class="stat">
+          <strong>0</strong>
+          Tổng số cây
+        </div>
+
+        <div class="stat">
+          <strong>0</strong>
+          Cần tưới hôm nay
+        </div>
+
+        <div class="stat">
+          <strong>0</strong>
+          Đã tưới
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
