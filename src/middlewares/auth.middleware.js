@@ -8,7 +8,7 @@ const requireAuth = (req, res, next) => {
 
 const preventAuthPage = (req, res, next) => {
   if (req.session.user) {
-    return res.redirect("/dashboard");
+    return res.redirect("/");
   }
 
   next();

@@ -1,51 +1,105 @@
 const Plant = require("../models/plant.model");
 
-const calculateNextWateringDate = (lastWateredAt, wateringFrequency) => {
-  const baseDate = lastWateredAt ? new Date(lastWateredAt) : new Date();
-  const nextDate = new Date(baseDate);
-
-  nextDate.setDate(nextDate.getDate() + Number(wateringFrequency));
-
-  return nextDate;
-};
-
-const getPlantStatus = (plant) => {
-  if (!plant.nextWateringAt) {
-    return {
-      status: "unknown",
-      text: "Chưa có lịch",
-      className: "status-unknown",
-    };
-  }
-
-  const nextWateringDate = new Date(plant.nextWateringAt);
-
+const getTodayRange = () => {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
   const todayEnd = new Date();
   todayEnd.setHours(23, 59, 59, 999);
 
-  if (nextWateringDate < todayStart) {
-    return {
-      status: "overdue",
-      text: "Quá hạn tưới",
-      className: "status-overdue",
-    };
+  return {
+    todayStart,
+    todayEnd,
+  };
+};
+
+const parseDateInput = (dateString) => {
+  const [year, month, day] = dateString.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
+
+const addDays = (date, days) => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + Number(days));
+  result.setHours(0, 0, 0, 0);
+  return result;
+};
+
+const getWateredTodayCount = (plant) => {
+  const { todayStart, todayEnd } = getTodayRange();
+
+  return (plant.wateringLogs || []).filter((log) => {
+    const wateredAt = new Date(log.wateredAt);
+    return wateredAt >= todayStart && wateredAt <= todayEnd;
+  }).length;
+};
+
+const getLastWateredAt = (plant) => {
+  const logs = plant.wateringLogs || [];
+
+  if (logs.length === 0) {
+    return null;
   }
 
-  if (nextWateringDate <= todayEnd) {
-    return {
-      status: "today",
-      text: "Cần tưới hôm nay",
-      className: "status-today",
-    };
+  const sortedLogs = [...logs].sort((a, b) => {
+    return new Date(b.wateredAt) - new Date(a.wateredAt);
+  });
+
+  return sortedLogs[0].wateredAt;
+};
+
+const addStatusToPlant = (plant) => {
+  const { todayStart, todayEnd } = getTodayRange();
+
+  const nextWateringAt = plant.nextWateringAt
+    ? new Date(plant.nextWateringAt)
+    : todayStart;
+
+  const wateringTimesPerDay = Number(plant.wateringTimesPerDay || 1);
+  const wateredTodayCount = getWateredTodayCount(plant);
+
+  const isScheduledToday = nextWateringAt <= todayEnd;
+  const isOverdue = nextWateringAt < todayStart;
+
+  const requiredTodayCount =
+    isScheduledToday || wateredTodayCount > 0 ? wateringTimesPerDay : 0;
+
+  const remainingTodayCount = Math.max(
+    requiredTodayCount - wateredTodayCount,
+    0
+  );
+
+  const isCompletedToday =
+    requiredTodayCount > 0 && remainingTodayCount === 0;
+
+  let status = "upcoming";
+  let statusText = "Chưa tới ngày tưới";
+  let statusClass = "status-upcoming";
+
+  if (isCompletedToday) {
+    status = "completed";
+    statusText = "Đã hoàn thành hôm nay";
+    statusClass = "status-completed";
+  } else if (isOverdue) {
+    status = "overdue";
+    statusText = "Quá hạn tưới";
+    statusClass = "status-overdue";
+  } else if (isScheduledToday) {
+    status = "today";
+    statusText = "Cần tưới hôm nay";
+    statusClass = "status-today";
   }
 
   return {
-    status: "upcoming",
-    text: "Chưa tới ngày tưới",
-    className: "status-upcoming",
+    ...plant,
+    status,
+    statusText,
+    statusClass,
+    wateredTodayCount,
+    requiredTodayCount,
+    remainingTodayCount,
+    isCompletedToday,
+    lastWateredAt: getLastWateredAt(plant),
   };
 };
 
@@ -54,16 +108,7 @@ const getPlantsByUser = async (userId) => {
     .sort({ nextWateringAt: 1, createdAt: -1 })
     .lean();
 
-  return plants.map((plant) => {
-    const statusInfo = getPlantStatus(plant);
-
-    return {
-      ...plant,
-      status: statusInfo.status,
-      statusText: statusInfo.text,
-      statusClass: statusInfo.className,
-    };
-  });
+  return plants.map(addStatusToPlant);
 };
 
 const getPlantById = async (plantId, userId) => {
@@ -76,41 +121,49 @@ const getPlantById = async (plantId, userId) => {
     return null;
   }
 
-  const statusInfo = getPlantStatus(plant);
+  return addStatusToPlant(plant);
+};
+
+const getHomeData = async (userId) => {
+  const plants = await getPlantsByUser(userId);
+
+  const needWateringPlants = plants.filter((plant) => {
+    return plant.remainingTodayCount > 0;
+  });
+
+  const completedPlants = plants.filter((plant) => {
+    return plant.isCompletedToday;
+  });
 
   return {
-    ...plant,
-    status: statusInfo.status,
-    statusText: statusInfo.text,
-    statusClass: statusInfo.className,
+    plants,
+    needWateringPlants,
+    stats: {
+      totalPlants: plants.length,
+      needWateringToday: needWateringPlants.length,
+      completedToday: completedPlants.length,
+    },
   };
 };
 
-const createPlant = async (userId, data) => {
-  const lastWateredDate = data.lastWateredAt
-    ? new Date(data.lastWateredAt)
-    : new Date();
+const createPlant = async (userId, data, imagePath) => {
+  const nextWateringDate = parseDateInput(data.nextWateringAt);
 
-  const nextWateringDate = calculateNextWateringDate(
-    lastWateredDate,
-    data.wateringFrequency
-  );
-
-  const plant = await Plant.create({
+  return Plant.create({
     userId,
     name: data.name,
     type: data.type,
+    image: imagePath || "",
     description: data.description,
-    wateringFrequency: data.wateringFrequency,
-    lastWateredAt: lastWateredDate,
-    nextWateringAt: nextWateringDate,
     note: data.note,
+    wateringTimesPerDay: data.wateringTimesPerDay,
+    wateringIntervalDays: data.wateringIntervalDays,
+    nextWateringAt: nextWateringDate,
+    wateringLogs: [],
   });
-
-  return plant;
 };
 
-const updatePlant = async (plantId, userId, data) => {
+const updatePlant = async (plantId, userId, data, imagePath) => {
   const plant = await Plant.findOne({
     _id: plantId,
     userId,
@@ -120,22 +173,17 @@ const updatePlant = async (plantId, userId, data) => {
     return null;
   }
 
-  const lastWateredDate = data.lastWateredAt
-    ? new Date(data.lastWateredAt)
-    : plant.lastWateredAt;
-
-  const nextWateringDate = calculateNextWateringDate(
-    lastWateredDate,
-    data.wateringFrequency
-  );
-
   plant.name = data.name;
   plant.type = data.type;
   plant.description = data.description;
-  plant.wateringFrequency = data.wateringFrequency;
-  plant.lastWateredAt = lastWateredDate;
-  plant.nextWateringAt = nextWateringDate;
   plant.note = data.note;
+  plant.wateringTimesPerDay = data.wateringTimesPerDay;
+  plant.wateringIntervalDays = data.wateringIntervalDays;
+  plant.nextWateringAt = parseDateInput(data.nextWateringAt);
+
+  if (imagePath) {
+    plant.image = imagePath;
+  }
 
   await plant.save();
 
@@ -159,56 +207,41 @@ const markPlantWatered = async (plantId, userId) => {
     return null;
   }
 
+  const plantStatus = addStatusToPlant(plant.toObject());
+
+  if (plantStatus.remainingTodayCount <= 0) {
+    return plant;
+  }
+
   const now = new Date();
 
-  plant.lastWateredAt = now;
-  plant.nextWateringAt = calculateNextWateringDate(
-    now,
-    plant.wateringFrequency
-  );
+  plant.wateringLogs.push({
+    wateredAt: now,
+  });
+
+  const wateredTodayCount = getWateredTodayCount(plant);
+  const wateringTimesPerDay = Number(plant.wateringTimesPerDay || 1);
+
+  if (wateredTodayCount >= wateringTimesPerDay) {
+    const { todayStart } = getTodayRange();
+
+    plant.nextWateringAt = addDays(
+      todayStart,
+      Number(plant.wateringIntervalDays || 1)
+    );
+  }
 
   await plant.save();
 
   return plant;
 };
 
-const getPlantStats = async (userId) => {
-  const plants = await Plant.find({ userId }).lean();
-
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-
-  const todayEnd = new Date();
-  todayEnd.setHours(23, 59, 59, 999);
-
-  const totalPlants = plants.length;
-
-  const needWatering = plants.filter((plant) => {
-    return plant.nextWateringAt && new Date(plant.nextWateringAt) <= todayEnd;
-  }).length;
-
-  const overdue = plants.filter((plant) => {
-    return plant.nextWateringAt && new Date(plant.nextWateringAt) < todayStart;
-  }).length;
-
-  const wateredToday = plants.filter((plant) => {
-    return plant.lastWateredAt && new Date(plant.lastWateredAt) >= todayStart;
-  }).length;
-
-  return {
-    totalPlants,
-    needWatering,
-    overdue,
-    wateredToday,
-  };
-};
-
 module.exports = {
   getPlantsByUser,
   getPlantById,
+  getHomeData,
   createPlant,
   updatePlant,
   deletePlant,
   markPlantWatered,
-  getPlantStats,
 };

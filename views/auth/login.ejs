@@ -5,106 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Đăng nhập - PlantCare Reminder</title>
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #eef7ee;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .auth-box {
-      width: 100%;
-      max-width: 420px;
-      background: white;
-      padding: 35px;
-      border-radius: 16px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    }
-
-    h1 {
-      text-align: center;
-      color: #2e7d32;
-      margin-bottom: 8px;
-    }
-
-    .desc {
-      text-align: center;
-      color: #666;
-      margin-bottom: 25px;
-    }
-
-    .form-group {
-      margin-bottom: 16px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: bold;
-      color: #333;
-    }
-
-    input {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      font-size: 15px;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: #2e7d32;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 13px;
-      border: none;
-      border-radius: 10px;
-      background: #2e7d32;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .btn:hover {
-      background: #1b5e20;
-    }
-
-    .error {
-      background: #ffebee;
-      color: #c62828;
-      padding: 12px;
-      border-radius: 10px;
-      margin-bottom: 16px;
-      text-align: center;
-    }
-
-    .link {
-      margin-top: 18px;
-      text-align: center;
-      color: #555;
-    }
-
-    .link a {
-      color: #2e7d32;
-      font-weight: bold;
-      text-decoration: none;
-    }
-  </style>
+  <link rel="stylesheet" href="/css/app.css" />
 </head>
-<body>
+<body class="auth-body">
   <div class="auth-box">
+    <a class="auth-brand" href="/">PlantCare Reminder</a>
+
     <h1>Đăng nhập</h1>
-    <div class="desc">Đăng nhập để xem lịch nhắc tưới cây</div>
+    <div class="auth-desc">Đăng nhập để quản lý lịch tưới cây</div>
 
     <% if (error) { %>
       <div class="error"><%= error %></div>
@@ -130,7 +38,9 @@
         />
       </div>
 
-      <button class="btn" type="submit">Đăng nhập</button>
+      <button class="btn btn-primary" style="width: 100%;" type="submit">
+        Đăng nhập
+      </button>
     </form>
 
     <div class="link">

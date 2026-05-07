@@ -5,153 +5,58 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Chi tiết cây - PlantCare Reminder</title>
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f3f8f3;
-    }
-
-    .navbar {
-      background: #2e7d32;
-      color: white;
-      padding: 16px 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .navbar a {
-      color: white;
-      text-decoration: none;
-      font-weight: bold;
-      margin-left: 16px;
-    }
-
-    .container {
-      max-width: 850px;
-      margin: 35px auto;
-      padding: 0 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-    }
-
-    h1 {
-      color: #2e7d32;
-      margin-top: 0;
-    }
-
-    .status {
-      display: inline-block;
-      padding: 8px 14px;
-      border-radius: 999px;
-      font-weight: bold;
-      margin-bottom: 18px;
-    }
-
-    .status-overdue {
-      background: #ffebee;
-      color: #c62828;
-    }
-
-    .status-today {
-      background: #fff8e1;
-      color: #ef6c00;
-    }
-
-    .status-upcoming {
-      background: #e8f5e9;
-      color: #2e7d32;
-    }
-
-    .info {
-      line-height: 1.9;
-      color: #444;
-    }
-
-    .label {
-      font-weight: bold;
-      color: #222;
-    }
-
-    .box {
-      background: #f7faf7;
-      padding: 18px;
-      border-radius: 12px;
-      margin-top: 18px;
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 25px;
-    }
-
-    .btn {
-      padding: 12px 18px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-      text-decoration: none;
-      font-size: 15px;
-    }
-
-    .btn-primary {
-      background: #2e7d32;
-      color: white;
-    }
-
-    .btn-light {
-      background: #e8f5e9;
-      color: #2e7d32;
-    }
-
-    .btn-water {
-      background: #0288d1;
-      color: white;
-    }
-
-    .btn-danger {
-      background: #c62828;
-      color: white;
-    }
-
-    form {
-      margin: 0;
-    }
-  </style>
+  <link rel="stylesheet" href="/css/app.css" />
 </head>
 <body>
   <div class="navbar">
-    <div>PlantCare Reminder</div>
+    <a class="brand" href="/">PlantCare Reminder</a>
+
     <div>
-      <a href="/dashboard">Dashboard</a>
-      <a href="/plants">Cây trồng</a>
+      <a href="/">Home</a>
+      <a href="/plants/create">+ Thêm cây mới</a>
       <a href="/logout">Đăng xuất</a>
     </div>
   </div>
 
   <div class="container">
     <div class="card">
+      <% if (plant.image) { %>
+        <img class="plant-image-detail" src="<%= plant.image %>" alt="<%= plant.name %>" />
+      <% } else { %>
+        <div class="image-placeholder">Chưa có ảnh</div>
+      <% } %>
+
       <div class="status <%= plant.statusClass %>">
         <%= plant.statusText %>
       </div>
 
       <h1><%= plant.name %></h1>
 
-      <div class="info">
-        <div><span class="label">Loại cây:</span> <%= plant.type || "Chưa nhập" %></div>
-        <div><span class="label">Tần suất tưới:</span> <%= plant.wateringFrequency %> ngày/lần</div>
-        <div><span class="label">Lần tưới gần nhất:</span> <%= formatDate(plant.lastWateredAt) %></div>
-        <div><span class="label">Ngày tưới tiếp theo:</span> <%= formatDate(plant.nextWateringAt) %></div>
+      <div class="meta">
+        <div>Loại cây: <%= plant.type || "Chưa nhập" %></div>
+
+        <div>
+          Lịch tưới:
+          <%= plant.wateringTimesPerDay %> lần /
+          <%= plant.wateringIntervalDays %> ngày
+        </div>
+
+        <div>
+          Hôm nay đã tưới:
+          <span class="water-count">
+            <%= plant.wateredTodayCount %>/<%= plant.requiredTodayCount %>
+          </span>
+        </div>
+
+        <div>
+          Lần tưới gần nhất:
+          <%= formatDateTime(plant.lastWateredAt) %>
+        </div>
+
+        <div>
+          Ngày cần tưới tiếp:
+          <%= formatDate(plant.nextWateringAt) %>
+        </div>
       </div>
 
       <div class="box">
@@ -159,17 +64,33 @@
         <p><%= plant.description || "Chưa có mô tả" %></p>
       </div>
 
-      <div class="box">
+      <div class="note-highlight">
         <h3>Ghi chú chăm sóc</h3>
         <p><%= plant.note || "Chưa có ghi chú" %></p>
       </div>
 
+      <div class="box">
+        <h3>Lịch sử tưới gần đây</h3>
+
+        <% if (!plant.wateringLogs || plant.wateringLogs.length === 0) { %>
+          <p>Chưa có lịch sử tưới.</p>
+        <% } else { %>
+          <ul>
+            <% plant.wateringLogs.slice().reverse().slice(0, 10).forEach((log) => { %>
+              <li><%= formatDateTime(log.wateredAt) %></li>
+            <% }) %>
+          </ul>
+        <% } %>
+      </div>
+
       <div class="actions">
-        <a class="btn btn-light" href="/plants">Quay lại</a>
+        <a class="btn btn-light" href="/">Quay lại Home</a>
         <a class="btn btn-primary" href="/plants/<%= plant._id %>/edit">Sửa cây</a>
 
         <form action="/plants/<%= plant._id %>/watered" method="POST">
-          <button class="btn btn-water" type="submit">Đánh dấu đã tưới</button>
+          <button class="btn btn-water" type="submit">
+            Đã tưới (<%= plant.wateredTodayCount %>/<%= plant.requiredTodayCount %>)
+          </button>
         </form>
 
         <form

@@ -82,7 +82,7 @@ const login = async (req, res) => {
 
     req.session.user = result.user;
 
-    res.redirect("/dashboard");
+    res.redirect("/");
   } catch (error) {
     console.error("Login error:", error);
 
@@ -98,7 +98,7 @@ const logout = (req, res) => {
   req.session.destroy((error) => {
     if (error) {
       console.error("Logout error:", error);
-      return res.redirect("/dashboard");
+      return res.redirect("/");
     }
 
     res.clearCookie("connect.sid");

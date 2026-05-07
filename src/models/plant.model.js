@@ -1,5 +1,17 @@
 const mongoose = require("mongoose");
 
+const wateringLogSchema = new mongoose.Schema(
+  {
+    wateredAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
 const plantSchema = new mongoose.Schema(
   {
     userId: {
@@ -16,25 +28,31 @@ const plantSchema = new mongoose.Schema(
 
     type: {
       type: String,
+      default: "",
       trim: true,
+    },
+
+    image: {
+      type: String,
       default: "",
     },
 
     description: {
       type: String,
-      trim: true,
       default: "",
+      trim: true,
     },
 
-    wateringFrequency: {
+    wateringTimesPerDay: {
       type: Number,
       required: true,
       default: 1,
     },
 
-    lastWateredAt: {
-      type: Date,
-      default: Date.now,
+    wateringIntervalDays: {
+      type: Number,
+      required: true,
+      default: 1,
     },
 
     nextWateringAt: {
@@ -42,10 +60,15 @@ const plantSchema = new mongoose.Schema(
       required: true,
     },
 
+    wateringLogs: {
+      type: [wateringLogSchema],
+      default: [],
+    },
+
     note: {
       type: String,
-      trim: true,
       default: "",
+      trim: true,
     },
   },
   {

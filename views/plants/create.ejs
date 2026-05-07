@@ -5,122 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Thêm cây - PlantCare Reminder</title>
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f3f8f3;
-    }
-
-    .navbar {
-      background: #2e7d32;
-      color: white;
-      padding: 16px 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .navbar a {
-      color: white;
-      text-decoration: none;
-      font-weight: bold;
-      margin-left: 16px;
-    }
-
-    .container {
-      max-width: 750px;
-      margin: 35px auto;
-      padding: 0 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-    }
-
-    h1 {
-      color: #2e7d32;
-      margin-top: 0;
-    }
-
-    .form-group {
-      margin-bottom: 18px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 7px;
-      font-weight: bold;
-      color: #333;
-    }
-
-    input,
-    textarea {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      font-size: 15px;
-      font-family: Arial, sans-serif;
-    }
-
-    textarea {
-      min-height: 90px;
-      resize: vertical;
-    }
-
-    input:focus,
-    textarea:focus {
-      outline: none;
-      border-color: #2e7d32;
-    }
-
-    .error {
-      background: #ffebee;
-      color: #c62828;
-      padding: 12px;
-      border-radius: 10px;
-      margin-bottom: 18px;
-    }
-
-    .actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    .btn {
-      padding: 12px 18px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      font-weight: bold;
-      text-decoration: none;
-      font-size: 15px;
-    }
-
-    .btn-primary {
-      background: #2e7d32;
-      color: white;
-    }
-
-    .btn-light {
-      background: #e8f5e9;
-      color: #2e7d32;
-    }
-  </style>
+  <link rel="stylesheet" href="/css/app.css" />
 </head>
 <body>
   <div class="navbar">
-    <div>PlantCare Reminder</div>
+    <a class="brand" href="/">PlantCare Reminder</a>
+
     <div>
-      <a href="/dashboard">Dashboard</a>
-      <a href="/plants">Cây trồng</a>
+      <a href="/">Home</a>
       <a href="/logout">Đăng xuất</a>
     </div>
   </div>
@@ -133,13 +25,13 @@
         <div class="error"><%= error %></div>
       <% } %>
 
-      <form action="/plants/create" method="POST">
+      <form action="/plants/create" method="POST" enctype="multipart/form-data">
         <div class="form-group">
           <label>Tên cây</label>
           <input
             type="text"
             name="name"
-            placeholder="Ví dụ: Sen đá, Trầu bà, Xương rồng..."
+            placeholder="Ví dụ: Sen đá"
             value="<%= oldData.name || '' %>"
           />
         </div>
@@ -149,50 +41,59 @@
           <input
             type="text"
             name="type"
-            placeholder="Ví dụ: Cây cảnh, cây để bàn..."
+            placeholder="Ví dụ: Cây cảnh, cây để bàn"
             value="<%= oldData.type || '' %>"
           />
         </div>
 
         <div class="form-group">
-          <label>Tần suất tưới</label>
+          <label>Ảnh cây</label>
+          <input type="file" name="image" accept="image/*" />
+        </div>
+
+        <div class="form-group">
+          <label>Số lần tưới trong một ngày tưới</label>
           <input
             type="number"
-            name="wateringFrequency"
+            name="wateringTimesPerDay"
             min="1"
-            placeholder="Ví dụ: 2 nghĩa là 2 ngày tưới 1 lần"
-            value="<%= oldData.wateringFrequency || 1 %>"
+            value="<%= oldData.wateringTimesPerDay || 1 %>"
           />
         </div>
 
         <div class="form-group">
-          <label>Ngày tưới gần nhất</label>
+          <label>Số ngày tưới</label>
+          <input
+            type="number"
+            name="wateringIntervalDays"
+            min="1"
+            value="<%= oldData.wateringIntervalDays || 1 %>"
+          />
+          <small>Ví dụ: nhập 2 nghĩa là 2 ngày mới tưới 1 lần.</small>
+        </div>
+
+        <div class="form-group">
+          <label>Ngày bắt đầu tưới / ngày cần tưới tiếp</label>
           <input
             type="date"
-            name="lastWateredAt"
-            value="<%= oldData.lastWateredAt || new Date().toISOString().slice(0, 10) %>"
+            name="nextWateringAt"
+            value="<%= oldData.nextWateringAt || new Date().toISOString().slice(0, 10) %>"
           />
         </div>
 
         <div class="form-group">
           <label>Mô tả</label>
-          <textarea
-            name="description"
-            placeholder="Mô tả ngắn về cây"
-          ><%= oldData.description || '' %></textarea>
+          <textarea name="description" placeholder="Mô tả ngắn về cây"><%= oldData.description || '' %></textarea>
         </div>
 
         <div class="form-group">
           <label>Ghi chú chăm sóc</label>
-          <textarea
-            name="note"
-            placeholder="Ví dụ: Không tưới quá nhiều nước, để nơi có ánh sáng..."
-          ><%= oldData.note || '' %></textarea>
+          <textarea name="note" placeholder="Ví dụ: Để nơi có ánh sáng nhẹ"><%= oldData.note || '' %></textarea>
         </div>
 
         <div class="actions">
           <button class="btn btn-primary" type="submit">Lưu cây</button>
-          <a class="btn btn-light" href="/plants">Quay lại</a>
+          <a class="btn btn-light" href="/">Quay lại</a>
         </div>
       </form>
     </div>

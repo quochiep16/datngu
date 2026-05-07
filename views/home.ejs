@@ -4,113 +4,189 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title><%= appName %></title>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f3f8f3;
-      margin: 0;
-      padding: 0;
-    }
-
-    .navbar {
-      background: white;
-      padding: 18px 50px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-    }
-
-    .logo {
-      color: #2e7d32;
-      font-weight: bold;
-      font-size: 22px;
-    }
-
-    .nav-links a {
-      margin-left: 14px;
-      text-decoration: none;
-      color: #2e7d32;
-      font-weight: bold;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 80px auto;
-      background: white;
-      padding: 40px;
-      border-radius: 16px;
-      text-align: center;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-    }
-
-    h1 {
-      color: #2e7d32;
-      margin-bottom: 12px;
-    }
-
-    p {
-      color: #555;
-      font-size: 18px;
-    }
-
-    .badge {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 10px 18px;
-      background: #e8f5e9;
-      color: #2e7d32;
-      border-radius: 999px;
-      font-weight: bold;
-    }
-
-    .main-btn {
-      display: inline-block;
-      margin-top: 28px;
-      padding: 13px 24px;
-      background: #2e7d32;
-      color: white;
-      border-radius: 10px;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .main-btn:hover {
-      background: #1b5e20;
-    }
-  </style>
+  <title>Home - PlantCare Reminder</title>
+  <link rel="stylesheet" href="/css/app.css" />
 </head>
 <body>
   <div class="navbar">
-    <div class="logo"><%= appName %></div>
+    <a class="brand" href="/">PlantCare Reminder</a>
 
-    <div class="nav-links">
-      <% if (currentUser) { %>
-        <a href="/dashboard">Dashboard</a>
-        <a href="/logout">Đăng xuất</a>
-      <% } else { %>
-        <a href="/login">Đăng nhập</a>
-        <a href="/register">Đăng ký</a>
-      <% } %>
+    <div>
+      <a href="/plants/create">+ Thêm cây mới</a>
+      <a href="/logout">Đăng xuất</a>
     </div>
   </div>
 
   <div class="container">
-    <h1><%= appName %></h1>
-    <p>Website quản lý cây trồng và lịch nhắc nhở tưới cây.</p>
+    <div class="card">
+      <h1>Xin chào, <%= user.name %>!</h1>
 
-    <div class="badge">
-      NodeJS + ExpressJS + MongoDB + EJS
+      <div class="grid grid-2">
+        <div class="stat">
+          <strong><%= stats.needWateringToday %></strong>
+          Cây còn phải tưới hôm nay
+        </div>
+
+        <div class="stat">
+          <strong><%= stats.completedToday %></strong>
+          Cây đã hoàn thành hôm nay
+        </div>
+      </div>
     </div>
 
-    <br />
+    <div class="top">
+      <h1>Cây cần tưới hôm nay</h1>
+    </div>
 
-    <% if (currentUser) { %>
-      <a class="main-btn" href="/dashboard">Vào trang quản lý</a>
+    <% if (needWateringPlants.length === 0) { %>
+      <div class="card empty">
+        <h2>Hôm nay không còn cây nào cần tưới</h2>
+        <p>Tất cả cây cần tưới hôm nay đã hoàn thành hoặc chưa tới lịch tưới.</p>
+      </div>
     <% } else { %>
-      <a class="main-btn" href="/register">Bắt đầu ngay</a>
+      <div class="grid">
+        <% needWateringPlants.forEach((plant) => { %>
+          <div class="card need-card">
+            <% if (plant.image) { %>
+              <img class="plant-image" src="<%= plant.image %>" alt="<%= plant.name %>" />
+            <% } else { %>
+              <div class="image-placeholder">Chưa có ảnh</div>
+            <% } %>
+
+            <div class="status <%= plant.statusClass %>">
+              <%= plant.statusText %>
+            </div>
+
+            <h1><%= plant.name %></h1>
+
+            <div class="meta">
+              <div>Loại cây: <%= plant.type || "Chưa nhập" %></div>
+
+              <div>
+                Lịch tưới:
+                <%= plant.wateringTimesPerDay %> lần /
+                <%= plant.wateringIntervalDays %> ngày
+              </div>
+
+              <div>
+                Hôm nay đã tưới:
+                <span class="water-count">
+                  <%= plant.wateredTodayCount %>/<%= plant.requiredTodayCount %>
+                </span>
+              </div>
+
+              <div>
+                Còn phải tưới:
+                <strong><%= plant.remainingTodayCount %> lần</strong>
+              </div>
+
+              <div>
+                Lần tưới gần nhất:
+                <%= formatDateTime(plant.lastWateredAt) %>
+              </div>
+            </div>
+
+            <% if (plant.note) { %>
+              <div class="note-highlight">
+                <strong>Ghi chú:</strong>
+                <p><%= plant.note %></p>
+              </div>
+            <% } %>
+
+            <div class="actions">
+              <form action="/plants/<%= plant._id %>/watered" method="POST">
+                <button class="btn btn-water" type="submit">
+                  Đã tưới (<%= plant.wateredTodayCount %>/<%= plant.requiredTodayCount %>)
+                </button>
+              </form>
+
+              <a class="btn btn-light" href="/plants/<%= plant._id %>">Chi tiết</a>
+              <a class="btn btn-light" href="/plants/<%= plant._id %>/edit">Sửa</a>
+
+              <form
+                action="/plants/<%= plant._id %>/delete"
+                method="POST"
+                onsubmit="return confirm('Bạn có chắc muốn xóa cây này không?')"
+              >
+                <button class="btn btn-danger" type="submit">Xóa</button>
+              </form>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+
+    <div class="top all-plant-title">
+      <h1>Tất cả cây của bạn</h1>
+      <a class="btn btn-primary" href="/plants/create">+ Thêm cây mới</a>
+    </div>
+
+    <% if (plants.length === 0) { %>
+      <div class="card empty">
+        <h2>Chưa có cây nào</h2>
+        <p>Hãy thêm cây đầu tiên để bắt đầu theo dõi lịch tưới.</p>
+        <a class="btn btn-primary" href="/plants/create">Thêm cây ngay</a>
+      </div>
+    <% } else { %>
+      <div class="grid">
+        <% plants.forEach((plant) => { %>
+          <div class="card">
+            <% if (plant.image) { %>
+              <img class="plant-image" src="<%= plant.image %>" alt="<%= plant.name %>" />
+            <% } else { %>
+              <div class="image-placeholder">Chưa có ảnh</div>
+            <% } %>
+
+            <div class="status <%= plant.statusClass %>">
+              <%= plant.statusText %>
+            </div>
+
+            <h1><%= plant.name %></h1>
+
+            <div class="meta">
+              <div>Loại cây: <%= plant.type || "Chưa nhập" %></div>
+
+              <div>
+                Lịch tưới:
+                <%= plant.wateringTimesPerDay %> lần /
+                <%= plant.wateringIntervalDays %> ngày
+              </div>
+
+              <div>
+                Hôm nay đã tưới:
+                <span class="water-count">
+                  <%= plant.wateredTodayCount %>/<%= plant.requiredTodayCount %>
+                </span>
+              </div>
+
+              <div>
+                Ngày cần tưới tiếp:
+                <%= formatDate(plant.nextWateringAt) %>
+              </div>
+            </div>
+
+            <% if (plant.note) { %>
+              <div class="note-highlight small-note">
+                <strong>Ghi chú:</strong>
+                <p><%= plant.note %></p>
+              </div>
+            <% } %>
+
+            <div class="actions">
+              <a class="btn btn-light" href="/plants/<%= plant._id %>">Chi tiết</a>
+              <a class="btn btn-light" href="/plants/<%= plant._id %>/edit">Sửa</a>
+
+              <form
+                action="/plants/<%= plant._id %>/delete"
+                method="POST"
+                onsubmit="return confirm('Bạn có chắc muốn xóa cây này không?')"
+              >
+                <button class="btn btn-danger" type="submit">Xóa</button>
+              </form>
+            </div>
+          </div>
+        <% }) %>
+      </div>
     <% } %>
   </div>
 </body>

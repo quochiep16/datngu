@@ -3,8 +3,10 @@ const validatePlantDto = (body) => {
   const type = body.type?.trim() || "";
   const description = body.description?.trim() || "";
   const note = body.note?.trim() || "";
-  const wateringFrequency = Number(body.wateringFrequency);
-  const lastWateredAt = body.lastWateredAt;
+
+  const wateringTimesPerDay = Number(body.wateringTimesPerDay);
+  const wateringIntervalDays = Number(body.wateringIntervalDays);
+  const nextWateringAt = body.nextWateringAt;
 
   if (!name) {
     return {
@@ -13,10 +15,24 @@ const validatePlantDto = (body) => {
     };
   }
 
-  if (!wateringFrequency || wateringFrequency <= 0) {
+  if (!wateringTimesPerDay || wateringTimesPerDay <= 0) {
     return {
       isValid: false,
-      message: "Tần suất tưới phải lớn hơn 0",
+      message: "Số lần tưới trong ngày phải lớn hơn 0",
+    };
+  }
+
+  if (!wateringIntervalDays || wateringIntervalDays <= 0) {
+    return {
+      isValid: false,
+      message: "Số ngày tưới phải lớn hơn 0",
+    };
+  }
+
+  if (!nextWateringAt) {
+    return {
+      isValid: false,
+      message: "Vui lòng chọn ngày bắt đầu tưới",
     };
   }
 
@@ -26,9 +42,10 @@ const validatePlantDto = (body) => {
       name,
       type,
       description,
-      wateringFrequency,
-      lastWateredAt,
       note,
+      wateringTimesPerDay,
+      wateringIntervalDays,
+      nextWateringAt,
     },
   };
 };

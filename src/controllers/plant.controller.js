@@ -1,7 +1,7 @@
 const { validatePlantDto } = require("../dtos/plant.dto");
 
 const {
-  getPlantsByUser,
+  getHomeData,
   getPlantById,
   createPlant,
   updatePlant,
@@ -9,17 +9,30 @@ const {
   markPlantWatered,
 } = require("../services/plant.service");
 
-const showPlantList = async (req, res) => {
-  try {
-    const plants = await getPlantsByUser(req.session.user.id);
+const getUploadedImagePath = (file) => {
+  if (!file) {
+    return "";
+  }
 
-    res.render("plants/index", {
-      title: "Danh sách cây",
+  return `/uploads/plants/${file.filename}`;
+};
+
+const showHome = async (req, res) => {
+  try {
+    const { plants, needWateringPlants, stats } = await getHomeData(
+      req.session.user.id
+    );
+
+    res.render("home", {
+      title: "Home",
+      user: req.session.user,
       plants,
+      needWateringPlants,
+      stats,
     });
   } catch (error) {
-    console.error("Show plant list error:", error);
-    res.redirect("/dashboard");
+    console.error("Show home error:", error);
+    res.redirect("/login");
   }
 };
 
@@ -43,9 +56,11 @@ const createNewPlant = async (req, res) => {
       });
     }
 
-    await createPlant(req.session.user.id, validation.data);
+    const imagePath = getUploadedImagePath(req.file);
 
-    res.redirect("/plants");
+    await createPlant(req.session.user.id, validation.data, imagePath);
+
+    res.redirect("/");
   } catch (error) {
     console.error("Create plant error:", error);
 
@@ -62,7 +77,7 @@ const showPlantDetail = async (req, res) => {
     const plant = await getPlantById(req.params.id, req.session.user.id);
 
     if (!plant) {
-      return res.redirect("/plants");
+      return res.redirect("/");
     }
 
     res.render("plants/detail", {
@@ -71,7 +86,7 @@ const showPlantDetail = async (req, res) => {
     });
   } catch (error) {
     console.error("Show plant detail error:", error);
-    res.redirect("/plants");
+    res.redirect("/");
   }
 };
 
@@ -80,7 +95,7 @@ const showEditPlantPage = async (req, res) => {
     const plant = await getPlantById(req.params.id, req.session.user.id);
 
     if (!plant) {
-      return res.redirect("/plants");
+      return res.redirect("/");
     }
 
     res.render("plants/edit", {
@@ -90,7 +105,7 @@ const showEditPlantPage = async (req, res) => {
     });
   } catch (error) {
     console.error("Show edit plant error:", error);
-    res.redirect("/plants");
+    res.redirect("/");
   }
 };
 
@@ -105,34 +120,38 @@ const updatePlantInfo = async (req, res) => {
         plant: {
           ...req.body,
           _id: req.params.id,
+          image: req.body.oldImage || "",
         },
       });
     }
 
+    const imagePath = getUploadedImagePath(req.file);
+
     const plant = await updatePlant(
       req.params.id,
       req.session.user.id,
-      validation.data
+      validation.data,
+      imagePath
     );
 
     if (!plant) {
-      return res.redirect("/plants");
+      return res.redirect("/");
     }
 
     res.redirect(`/plants/${req.params.id}`);
   } catch (error) {
     console.error("Update plant error:", error);
-    res.redirect("/plants");
+    res.redirect("/");
   }
 };
 
 const deletePlantById = async (req, res) => {
   try {
     await deletePlant(req.params.id, req.session.user.id);
-    res.redirect("/plants");
+    res.redirect("/");
   } catch (error) {
     console.error("Delete plant error:", error);
-    res.redirect("/plants");
+    res.redirect("/");
   }
 };
 
@@ -140,16 +159,16 @@ const markWatered = async (req, res) => {
   try {
     await markPlantWatered(req.params.id, req.session.user.id);
 
-    const backUrl = req.get("Referrer") || "/plants";
+    const backUrl = req.get("Referrer") || "/";
     res.redirect(backUrl);
   } catch (error) {
     console.error("Mark watered error:", error);
-    res.redirect("/plants");
+    res.redirect("/");
   }
 };
 
 module.exports = {
-  showPlantList,
+  showHome,
   showCreatePlantPage,
   createNewPlant,
   showPlantDetail,
