@@ -355,3 +355,22 @@ textarea:focus {
   background: #f9fbe7;
   border-left-color: #9e9d24;
 }
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  padding-right: 48px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  color: #2e7d32;
+}
