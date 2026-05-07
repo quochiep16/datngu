@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Sửa cây - PlantCare Reminder</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f8f3;
+    }
+
+    .navbar {
+      background: #2e7d32;
+      color: white;
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      margin-left: 16px;
+    }
+
+    .container {
+      max-width: 750px;
+      margin: 35px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      color: #2e7d32;
+      margin-top: 0;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: Arial, sans-serif;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #2e7d32;
+    }
+
+    .error {
+      background: #ffebee;
+      color: #c62828;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 18px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      padding: 12px 18px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+      font-size: 15px;
+    }
+
+    .btn-primary {
+      background: #2e7d32;
+      color: white;
+    }
+
+    .btn-light {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <div>PlantCare Reminder</div>
+    <div>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/plants">Cây trồng</a>
+      <a href="/logout">Đăng xuất</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h1>Sửa cây</h1>
+
+      <% if (error) { %>
+        <div class="error"><%= error %></div>
+      <% } %>
+
+      <form action="/plants/<%= plant._id %>/edit" method="POST">
+        <div class="form-group">
+          <label>Tên cây</label>
+          <input
+            type="text"
+            name="name"
+            value="<%= plant.name || '' %>"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Loại cây</label>
+          <input
+            type="text"
+            name="type"
+            value="<%= plant.type || '' %>"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Tần suất tưới</label>
+          <input
+            type="number"
+            name="wateringFrequency"
+            min="1"
+            value="<%= plant.wateringFrequency || 1 %>"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Ngày tưới gần nhất</label>
+          <input
+            type="date"
+            name="lastWateredAt"
+            value="<%= formatDateInput(plant.lastWateredAt) %>"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Mô tả</label>
+          <textarea name="description"><%= plant.description || '' %></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Ghi chú chăm sóc</label>
+          <textarea name="note"><%= plant.note || '' %></textarea>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" type="submit">Cập nhật</button>
+          <a class="btn btn-light" href="/plants/<%= plant._id %>">Quay lại</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

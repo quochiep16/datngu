@@ -5,7 +5,10 @@ const session = require("express-session");
 
 const connectDB = require("./src/config/database");
 const authRoute = require("./src/routes/auth.route");
+const plantRoute = require("./src/routes/plant.route");
+
 const { requireAuth } = require("./src/middlewares/auth.middleware");
+const { getPlantStats } = require("./src/services/plant.service");
 
 dotenv.config();
 
@@ -41,12 +44,26 @@ app.use((req, res, next) => {
   next();
 });
 
+// Helper format ngày dùng trong EJS
+app.locals.formatDate = (date) => {
+  if (!date) return "Chưa có";
+
+  return new Date(date).toLocaleDateString("vi-VN");
+};
+
+app.locals.formatDateInput = (date) => {
+  if (!date) return "";
+
+  return new Date(date).toISOString().slice(0, 10);
+};
+
 // View engine
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 // Routes
 app.use("/", authRoute);
+app.use("/plants", plantRoute);
 
 // Home
 app.get("/", (req, res) => {
@@ -56,10 +73,13 @@ app.get("/", (req, res) => {
 });
 
 // Dashboard
-app.get("/dashboard", requireAuth, (req, res) => {
+app.get("/dashboard", requireAuth, async (req, res) => {
+  const stats = await getPlantStats(req.session.user.id);
+
   res.render("dashboard", {
     title: "Dashboard",
     user: req.session.user,
+    stats,
   });
 });
 

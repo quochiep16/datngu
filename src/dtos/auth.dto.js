@@ -3,7 +3,7 @@ const validateRegisterDto = (body) => {
   const email = body.email?.trim().toLowerCase();
   const password = body.password;
   const confirmPassword = body.confirmPassword;
-
+//dto register
   if (!name) {
     return {
       isValid: false,
@@ -59,7 +59,7 @@ const validateRegisterDto = (body) => {
 const validateLoginDto = (body) => {
   const email = body.email?.trim().toLowerCase();
   const password = body.password;
-
+//dto login
   if (!email) {
     return {
       isValid: false,
