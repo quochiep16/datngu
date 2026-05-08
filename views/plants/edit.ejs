@@ -39,6 +39,16 @@
         </div>
 
         <div class="form-group">
+          <label>Vị trí đặt cây</label>
+          <input
+            type="text"
+            name="location"
+            value="<%= plant.location || '' %>"
+            placeholder="Ví dụ: Ban công, phòng khách, bàn học..."
+          />
+        </div>
+
+        <div class="form-group">
           <label>Ảnh hiện tại</label>
 
           <% if (plant.image) { %>

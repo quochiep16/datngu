@@ -1,6 +1,7 @@
 const validatePlantDto = (body) => {
   const name = body.name?.trim();
   const type = body.type?.trim() || "";
+  const location = body.location?.trim() || "";
   const description = body.description?.trim() || "";
   const note = body.note?.trim() || "";
 
@@ -41,6 +42,7 @@ const validatePlantDto = (body) => {
     data: {
       name,
       type,
+      location,
       description,
       note,
       wateringTimesPerDay,

@@ -153,6 +153,7 @@ const createPlant = async (userId, data, imagePath) => {
     userId,
     name: data.name,
     type: data.type,
+    location: data.location,
     image: imagePath || "",
     description: data.description,
     note: data.note,
@@ -175,6 +176,7 @@ const updatePlant = async (plantId, userId, data, imagePath) => {
 
   plant.name = data.name;
   plant.type = data.type;
+  plant.location = data.location;
   plant.description = data.description;
   plant.note = data.note;
   plant.wateringTimesPerDay = data.wateringTimesPerDay;

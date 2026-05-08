@@ -32,6 +32,12 @@ const plantSchema = new mongoose.Schema(
       trim: true,
     },
 
+    location: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     image: {
       type: String,
       default: "",
